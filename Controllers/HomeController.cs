@@ -1,16 +1,20 @@
-using BaiTapBuoi5.Models;
+﻿using BaiTapBuoi5.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using BaiTapBuoi5.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaiTapBuoi5.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly AppDbContext _db;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, AppDbContext db)
         {
             _logger = logger;
+            _db = db;
         }
 
         public IActionResult Index()
@@ -33,16 +37,21 @@ namespace BaiTapBuoi5.Controllers
             return View();
         }
 
-        public IActionResult Products()
+        public async Task<IActionResult> Products()
         {
-            var products = new List<Product>
-    {
-        new Product { Id = 1, Name = "Bàn phím", Price = 350000 },
-        new Product { Id = 2, Name = "Chuột", Price = 180000 },
-        new Product { Id = 3, Name = "Màn hình", Price = 2500000 }
-    };
+            var products = await _db.Products
+                .AsNoTracking()
+                .ToListAsync();
 
             return View(products);
+        }
+        public async Task<IActionResult> TestSql()
+        {
+            bool connected = await _db.Database.CanConnectAsync();
+
+            return Content(connected
+                ? "Đã kết nối tới database!"
+                : "Chưa kết nối được tới database.");
         }
     }
 }
